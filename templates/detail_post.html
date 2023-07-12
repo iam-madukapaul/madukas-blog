@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %} 
+
+<section> 
+  <div class="container px-7 my-1">
+    <div class="row gx-5">
+      <div class="col-lg-9">
+        <article>
+          <header class="mb-4">
+            {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show mx-auto" role="alert">
+                {{message}}
+              </div>
+            {% endfor %}
+            {% endif %}
+          </header>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Page Content-->
+<section> 
+  <div class="container px-7 my-1">
+    <div class="row gx-5">
+
+      <div class="col-lg-9">
+        <!-- Post content-->
+        <article>
+          <!-- Post header-->
+          <header class="mb-4">
+            <!-- Post title-->
+            <div class="d-flex align-items-center">
+              <a href="{% url 'profile' post.author.pk %}">
+                <img class="rounded-circle me-3" src="{{ post.author.profile_picture.url }}" alt="..."
+                  style="width: 50px; height: 50px;" />
+              </a>
+              <div class="small">
+                <div class="fw-bold">{{ post.author.name }}</div>
+                <div class="text-muted">{{ post.created_at }} &middot; {{ post.get_readtime }} read</div>
+              </div>
+            </div>
+            <h1 class="fw-bolder mb-1">{{ post.title }}</h1>
+            <!-- Post categories-->
+            <a class="badge bg-secondary text-decoration-none link-light" href="{% url 'category_post' post.category.slug %}">{{ post.category.title }}</a>
+            <br>
+            <figure class="mt-1">
+              <img class="img-fluid rounded" src="{{ post.image.url }}" alt="..." width="900px" />
+            </figure>
+          </header>
+          <!-- Post content-->
+          <section class="mb-5">
+            <p class="fs-5 mb-4">{{ post.body|safe }}</p>
+          </section>
+        </article>
+        <hr>
+        {% with approved_comments_count as total_comments %}
+          <h3>comment{{ total_comments|pluralize }}<small>({{ total_comments }})</small></h3>
+        {% endwith %}
+
+        <!-- Comments section-->
+        <div id="comments-section">
+          <div class="card bg-light">
+            <div class="card-body">
+              <!-- Single comment-->
+              {% for comment in post.comments.all %}
+              {% if comment.status %}
+              <div class="comment">
+                <div class="d-flex">
+                  <div class="flex-shrink-0">
+                    <a href="{% url 'profile' comment.author.pk %}">
+                      <img class="rounded-circle" src="{{ comment.author.userprofile.profile_picture.url }}" alt="..."
+                      style="width: 40px; height: 40px;" />
+                    </a>
+                  </div>
+                  <div class="ms-3">
+                    <div>
+                      <b>{{ comment.author }}</b>
+                      <small>{{ comment.created_at|timesince }} ago...</small>
+                    </div>
+                    {{ comment.content }}
+                    <p>
+                      <!-- Like and Dislike buttons for comment -->
+                      {% if request.user.is_authenticated %}
+                      <button 
+                        class="badge btn btn-primary text-decoration-none link-light comment-like-btn"
+                        data-comment-id="{{ comment.id }}" data-like-url="{% url 'like_comment' comment.id %}">
+                        Like <span class="total-likes" id="likes-{{ comment.id }}">{{ comment.likes.count }}</span>
+                      </button>
+                      <button 
+                        class="badge btn btn-primary text-decoration-none link-light comment-dislike-btn"
+                        data-comment-id="{{ comment.id }}" data-dislike-url="{% url 'dislike_comment' comment.id %}">
+                        Dislike <span class="total-dislikes" id="dislikes-{{ comment.id }}">{{ comment.dislikes.count}}</span>
+                      </button>
+                      <button 
+                        class="badge btn btn-primary text-decoration-none link-light reply-btn" type="button"
+                        data-comment="{{ comment.id }}" data-id="{{forloop.counter}}" data-bs-toggle="collapse"
+                        data-bs-target="#reply{{comment.id}}" aria-expanded="false" aria-controls="collapseExample">
+                        Reply
+                        <span class="total-comments">
+                          {% if comment.replies.all %}
+                          {{ approved_replies_count }}
+                          {% else %}
+                          -
+                          {% endif %}
+                        </span>
+                      </button>
+                      {% else %}
+                      <button disabled
+                        class="badge btn btn-primary text-decoration-none link-light comment-like-btn"
+                        data-comment-id="{{ comment.id }}" data-like-url="{% url 'like_comment' comment.id %}">
+                        Like <span class="total-likes" id="likes-{{ comment.id }}">{{ comment.likes.count }}</span>
+                      </button>
+                      <button disabled
+                        class="badge btn btn-primary text-decoration-none link-light comment-dislike-btn"
+                        data-comment-id="{{ comment.id }}" data-dislike-url="{% url 'dislike_comment' comment.id %}">
+                        Dislike <span class="total-dislikes" id="dislikes-{{ comment.id }}">{{ comment.dislikes.count}}</span>
+                      </button>
+                      <button disabled
+                        class="badge btn btn-primary text-decoration-none link-light reply-btn" type="button"
+                        data-comment="{{ comment.id }}" data-id="{{forloop.counter}}" data-bs-toggle="collapse"
+                        data-bs-target="#reply{{comment.id}}" aria-expanded="false" aria-controls="collapseExample">
+                        Reply
+                        <span class="total-comments">
+                          {% if comment.replies.all %}
+                          {{ approved_replies_count }}
+                          {% else %}
+                          -
+                          {% endif %}
+                        </span>
+                      </button>
+                      {% endif %}
+                  </div>
+                </div>
+                <div style="margin-left: 6%; margin-bottom: 2%;" class="collapse" id="reply{{ comment.id }}">
+                  <form class="reply-form" method="post" action="{% url 'add_reply' comment.id %}">
+                    {% csrf_token %}
+                    {{ reply_form.media }}
+                    {{ reply_form.content }}
+                    <button class="badge btn btn-primary text-decoration-none link-light" type="submit" style="margin-top: 0.5%;">Reply</button>
+                  </form>
+                </div>
+                <div class="replies-section" id="replies{{ comment.id }}">
+                  {% if comment.replies.all %}
+                  {% for reply in comment.replies.all %}
+                  {% if reply.status %}
+                  <div style="margin-left: 8%;" class="reply-{{ forloop.counter }} d-flex">
+                    <div class="flex-shrink-0">
+                      <a href="{% url 'profile' reply.author.pk %}">
+                        <img class="rounded-circle" src="{{reply.author.userprofile.profile_picture.url}}" alt="..."
+                        style="width: 30px; height: 30px;" />
+                      </a>
+                    </div>
+                    <div class="ms-3">
+                      <div>
+                        <b>{{ reply.author }}</b>
+                        <small>{{ reply.created_at|timesince }} ago...</small>
+                      </div>
+                      {{ reply.content }}
+                      <p>
+                        <!-- Like and Dislike buttons for reply -->
+                        {% if request.user.is_authenticated %}
+                        <button 
+                          class="badge btn btn-primary text-decoration-none link-light reply-like-btn"
+                          data-reply-id="{{ reply.id }}" data-like-url="{% url 'like_reply' reply.id %}">
+                          Like <span class="total-likes" id="likes-{{ reply.id }}">{{ reply.likes.count }}</span>
+                        </button>
+                        <button style="margin-left: 0.5%;"
+                          class="badge btn btn-primary text-decoration-none link-light reply-dislike-btn"
+                          data-reply-id="{{ reply.id }}" data-dislike-url="{% url 'dislike_reply' reply.id %}">
+                          Dislike <span class="total-dislikes" id="dislikes-{{ reply.id }}">{{ reply.dislikes.count}}</span>
+                        </button>
+                        {% else %}
+                        <button disabled
+                          class="badge btn btn-primary text-decoration-none link-light reply-like-btn"
+                          data-reply-id="{{ reply.id }}" data-like-url="{% url 'like_reply' reply.id %}">
+                          Like <span class="total-likes" id="likes-{{ reply.id }}">{{ reply.likes.count }}</span>
+                        </button>
+                        <button style="margin-left: 0.5%;" disabled
+                          class="badge btn btn-primary text-decoration-none link-light reply-dislike-btn"
+                          data-reply-id="{{ reply.id }}" data-dislike-url="{% url 'dislike_reply' reply.id %}">
+                          Dislike <span class="total-dislikes" id="dislikes-{{ reply.id }}">{{ reply.dislikes.count}}</span>
+                        </button>
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                </div>
+                {% if not forloop.last %}<hr>{% endif %} 
+              </div>
+              {% endif %}
+              {% empty %}
+              <b>There are no comments for this post.</b>
+              {% endfor %}
+            </div>
+          </div><br>
+          <!-- Comment form-->
+          <form id="comment-form" method="post" action="{% url 'add_comment' slug=post.slug %}">
+            {% csrf_token %}
+            {{ comment_form.media }}
+            {{ comment_form.content }}
+            <button class="btn btn-primary" type="submit" style="margin-top: 0.5%;">Submit Comment</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-lg-3"><br>
+        <h4>Recent post...</h4>
+        {% for post in posts %}
+        <div class="card" style="width: 18rem;">
+            <img src="{{post.image.url}}" class="card-img-top" alt="..." height="200px">
+            <div class="card-body">
+                <h5 class="card-title">{{ post.title }}</h5>
+                <a href="{% url 'detail-post' post.slug %}" class="btn btn-primary">View post</a>
+            </div>
+        </div><br>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<script>
+  
+  // Function to handle the like button click for comments
+  function handleCommentLikeClick(commentId, likeUrl) {
+    const likesCountElement = document.getElementById('likes-' + commentId);
+    const dislikesCountElement = document.getElementById('dislikes-' + commentId);
+
+    // Send a POST request to the like URL for comments
+    fetch(likeUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Update the likes count in the UI for comments
+        likesCountElement.textContent = data.total_likes;
+
+        // Update the dislikes count in the UI for comments
+        dislikesCountElement.textContent = data.total_dislikes;
+
+        // If the dislike button was previously clicked, reset the count and style
+        const dislikeButton = document.getElementById('dislike-btn-' + commentId);
+        dislikeButton.classList.remove('active');
+        dislikeButton.removeAttribute('disabled');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  // Function to handle the dislike button click for comments
+  function handleCommentDislikeClick(commentId, dislikeUrl) {
+    const likesCountElement = document.getElementById('likes-' + commentId);
+    const dislikesCountElement = document.getElementById('dislikes-' + commentId);
+
+    // Send a POST request to the dislike URL for comments
+    fetch(dislikeUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Update the likes count in the UI for comments
+        likesCountElement.textContent = data.total_likes;
+
+        // Update the dislikes count in the UI for comments
+        dislikesCountElement.textContent = data.total_dislikes;
+
+        // If the like button was previously clicked, reset the count and style
+        const likeButton = document.getElementById('like-btn-' + commentId);
+        likeButton.classList.remove('active');
+        likeButton.removeAttribute('disabled');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  // Attach event listeners to like buttons for comments
+  const commentLikeButtons = document.querySelectorAll('.comment-like-btn');
+  commentLikeButtons.forEach(button => {
+    const commentId = button.dataset.commentId;
+    const likeUrl = button.dataset.likeUrl;
+    button.addEventListener('click', () => handleCommentLikeClick(commentId, likeUrl));
+  });
+
+  // Attach event listeners to dislike buttons for comments
+  const commentDislikeButtons = document.querySelectorAll('.comment-dislike-btn');
+  commentDislikeButtons.forEach(button => {
+    const commentId = button.dataset.commentId;
+    const dislikeUrl = button.dataset.dislikeUrl;
+    button.addEventListener('click', () => handleCommentDislikeClick(commentId, dislikeUrl));
+  });
+
+  // Function to handle the like button click for replies
+  function handleReplyLikeClick(replyId, likeUrl) {
+    const likesCountElement = document.getElementById('likes-' + replyId);
+    const dislikesCountElement = document.getElementById('dislikes-' + replyId);
+
+    // Send a POST request to the like URL for replies
+    fetch(likeUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Update the likes count in the UI for replies
+        likesCountElement.textContent = data.total_likes;
+
+        // Update the dislikes count in the UI for replies
+        dislikesCountElement.textContent = data.total_dislikes;
+
+        // If the dislike button was previously clicked, reset the count and style
+        const dislikeButton = document.getElementById('dislike-btn-' + replyId);
+        dislikeButton.classList.remove('active');
+        dislikeButton.removeAttribute('disabled');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  // Function to handle the dislike button click for replies
+  function handleReplyDislikeClick(replyId, dislikeUrl) {
+    const likesCountElement = document.getElementById('likes-' + replyId);
+    const dislikesCountElement = document.getElementById('dislikes-' + replyId);
+
+    // Send a POST request to the dislike URL for replies
+    fetch(dislikeUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Update the likes count in the UI for replies
+        likesCountElement.textContent = data.total_likes;
+
+        // Update the dislikes count in the UI for replies
+        dislikesCountElement.textContent = data.total_dislikes;
+
+        // If the like button was previously clicked, reset the count and style
+        const likeButton = document.getElementById('like-btn-' + replyId);
+        likeButton.classList.remove('active');
+        likeButton.removeAttribute('disabled');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  }
+
+  // Attach event listeners to like buttons for replies
+  const replyLikeButtons = document.querySelectorAll('.reply-like-btn');
+  replyLikeButtons.forEach(button => {
+    const replyId = button.dataset.replyId;
+    const likeUrl = button.dataset.likeUrl;
+    button.addEventListener('click', () => handleReplyLikeClick(replyId, likeUrl));
+  });
+
+  // Attach event listeners to dislike buttons for replies
+  const replyDislikeButtons = document.querySelectorAll('.reply-dislike-btn');
+  replyDislikeButtons.forEach(button => {
+    const replyId = button.dataset.replyId;
+    const dislikeUrl = button.dataset.dislikeUrl;
+    button.addEventListener('click', () => handleReplyDislikeClick(replyId, dislikeUrl));
+  });
+</script>
+
+{% endblock %}

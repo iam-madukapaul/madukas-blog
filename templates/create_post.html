@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+
+
+<div class="col-8 offset-2 mb-5 mt-3">
+    <h3>Create a post</h3>
+    <ul>
+        <li>Warning, do not post a repetitive content or erotic content.</li>
+        <li>To avoid image resize, image size shouldn't be less than 900x400 pixels in width and height respectively.</li>
+        <li>Your image must not exceed 2500 pixels both in height and width.</li>
+        <li>feel free to explore every tool in the body section; Note, to include images and videos in the body section, you are required to input the url respectively.</li>
+        <li>Please take your time when creating a post to give a vivid description, so other readers can comprehend. </li>
+        <li>Contact us for placing; adverts, press releases and sponsored contents on our official website. </li>
+    </ul>
+    {{ form.media }}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button class="btn btn-primary">Submit</button>
+
+    </form>
+</div>
+
+        
+
+{% endblock %} 

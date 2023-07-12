@@ -1,0 +1,15 @@
+asgiref==3.7.2
+beautifulsoup4==4.12.2
+cssselect==1.2.0
+Django==4.2.2
+django-bootstrap5==23.3
+django-tinymce==3.6.1
+lxml==4.9.3
+markdown2==2.4.9
+Pillow==9.5.0
+pyquery==2.0.0
+readtime==2.0.0
+six==1.16.0
+soupsieve==2.4.1
+sqlparse==0.4.4
+tzdata==2023.3

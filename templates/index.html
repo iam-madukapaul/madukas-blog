@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% include 'partials/_head.html' %}
+
+<!-- Blog preview section-->
+<section class="py-3">
+    <div class="container px-7">
+        <div class="row gx-5">
+            {% if posts %}
+            {% for post in posts %}
+            <div class="col-lg-4 mb-5">
+                <div class="card h-100 shadow border-0">
+                    <img class="card-img-top" src="{{ post.image.url }}" alt="..." height="250px" />
+                    <div class="card-body p-4">
+                        <div class="badge bg-primary bg-gradient rounded-pill mb-2"><a class="text-decoration-none link-light" href="{% url 'category_post' post.category.slug %}">{{ post.category.title }}</a></div>
+                        <a class="text-decoration-none link-dark " href="{% url 'detail-post' post.slug %}">
+                            <h5 class="card-title mb-3">{{ post.title }}</h5>
+                            <p class="card-text mb-0">{{ post.body|truncatewords:50|safe }}</p>
+                        </a>
+                        <small><a href="{% url 'detail-post' post.slug %}" class="btn btn-primary">Read more...</a></small>
+                    </div>
+                    <div class="card-footer p-4 pt-0 bg-transparent border-top-0">
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <a href="{% url 'profile' post.author.pk %}"><img class="rounded-circle me-3"
+                                        src="{{post.author.profile_picture.url}}" alt="..."
+                                        style="width: 40px; height: 40px;" /></a>
+                                <div class="small">
+                                    <div class="fw-bold">{{ post.author.name }}</div>
+                                    <div class="text-muted">{{ post.created_at }} &middot; {{ post.get_readtime }} read</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if request.user.is_staff %}
+                    <div>
+                        <a href="{% url 'update-post' post.slug %}"><button class="btn btn-success"> <i
+                                    class="bi bi-pencil-square "
+                                    style="font-size: 20px;color: white;"></i></button></a>
+                        <a href="{% url 'delete-post' post.slug %}"><button class="btn btn-danger"> <i
+                                    class="bi bi-trash "
+                                    style="font-size: 20px;color: white;"></i></button></a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center"><h2>No post matches this search @{{search_querry}}</h2></div>
+            {% endif %}
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    {% if posts.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?search={{search_querry}}&page={{ posts.previous_page_number }}" aria-label="Previous"> 
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link disabled">
+                            <span>&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if posts.number > 3 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?search={{search_querry}}&page=1">1</a>
+                    </li>
+                    {% if posts.number > 4 %}
+                    <li class="page-item"><span class="page-link">...</span></li>
+                    {% endif %}
+                    {% endif %}
+                    {% for num in posts.paginator.page_range %}
+                    {% if posts.number == num %}
+                    <li class="page-item active"><a class="page-link" href="?search={{search_querry}}&page={{ num }}">{{ num }}</a></li>
+                    {% elif num > posts.number|add:'-2' and num < posts.number|add:'2' %}
+                    <li class="page-item"><a class="page-link" href="?search={{search_querry}}&page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    {% if posts.has_next %}
+                    {% if posts.number < posts.paginator.num_pages|add:'-2' %}
+                    <li class="page-item"><span class="page-link">...</span></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?search={{search_querry}}&page={{ posts.paginator.num_pages }}">{{ posts.paginator.num_pages }}</a>
+                    </li>
+                    {% elif posts.number < posts.paginator.num_pages|add:'-1' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?search={{search_querry}}&page={{ posts.paginator.num_pages }}">{{ posts.paginator.num_pages }}</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" class="page-link" href="?search={{search_querry}}&page={{ posts.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                </ul>
+            </nav>
+        </div>
+</section>
+
+{% endblock %}

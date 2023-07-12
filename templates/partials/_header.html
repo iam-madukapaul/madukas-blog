@@ -1,0 +1,53 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid " style="margin-left: 15%;">
+        <a class="navbar-brand" href="{% url 'index' %}">MADUKA's BLOG</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span
+                class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 mx-2">
+                <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdownPortfolio" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownPortfolio">
+                        {% for cat in categories %}
+                        <a class="dropdown-item" href="{% url 'category_post' cat.slug %}">{{ cat.title }}</a>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+                {% if request.user.is_staff %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'create-post' %}">Create post</a></li>
+                {% endif %}
+                {% if request.user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdownPortfolio" href="#" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">Welcome, {{ request.user.username }}</a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownPortfolio">
+                        <li><a class="dropdown-item" href="{% url 'account' %}">Account</a></li>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                        <li><a class="dropdown-item" href="{% url 'change-password' %}">Change password</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="btn btn-outline-light" href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                <li class="nav-item" style="margin-right: 1%;"><a class="btn btn-outline-light" href="{% url 'login' %}">Login</a></li>
+                <li class="nav-item"><a class="btn btn-outline-light" href="{% url 'register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+            <div style="margin-right: 10%;">
+                <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search" value="{{search_querry}}"> 
+                    <button class="btn btn-outline-info" type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    setTimeout ( () => {
+        $(".alert").alert("close");
+    }, 5000)
+</script>

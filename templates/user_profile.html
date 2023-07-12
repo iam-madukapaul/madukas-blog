@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="h-100 gradient-custom-2 mb-3">
+    <div class="container">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col col-lg-9 col-xl-7">
+                <div class="card">
+                    <div class="rounded-top text-white d-flex flex-row" style="background-color: #000; height:200px;">
+                        <div class="ms-4 mt-5 d-flex flex-column" style="width: 150px;">
+                            <img src="{{profile.profile_picture.url}}" alt="Generic placeholder image"
+                                class="img-fluid img-thumbnail mt-4 mb-2" style="width: 150px; z-index: 1"> 
+                        </div>
+                        <div class="ms-3" style="margin-top: 130px;"> 
+                            <h5>{{ profile.name }}</h5>
+                            <p>{{ profile.profession }}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 text-black" style="background-color: #f8f9fa;">
+                        <div class="d-flex justify-content-end text-center py-1">
+                        </div>
+                    </div>
+                    <div class="card-body p-4 text-black">
+                        <div class="mb-5">
+                            <p class="mb-1 h5">About</p>
+                            <div class="p-4" style="background-color: #f8f9fa;">
+                                <p class="font-italic mb-1">{{ profile.about_me }}</p>
+                            </div>
+                        </div>
+                       
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

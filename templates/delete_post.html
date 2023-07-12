@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+
+<div class="col-9 offset-2 mb-5 mt-3">
+    <h2>Are you sure, you want to delete this post???</h2>
+    {{ form.media }}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <a class="btn btn-primary" href="{% url 'detail-post' post.slug %}">Cancel</a>
+        <button class="btn btn-danger">Delete</button>
+
+    </form>
+</div>
+
+        
+
+{% endblock %}

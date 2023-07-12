@@ -1,0 +1,89 @@
+<script>
+  $(document).ready(function () {
+    // Submit Comment Form
+    $("#comment-form").submit(function (event) {
+      event.preventDefault();
+      var form = $(this);
+      var url = form.attr("action");
+      var formData = new FormData(this);
+
+      $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          // Handle success response
+          $("#comments-section").load(location.href + " #comments-section>*", "");
+          form[0].reset();
+        },
+        error: function (xhr, status, error) {
+          // Handle error response
+          console.error(xhr.responseText);
+        },
+      });
+    });
+
+    // Submit reply form
+$(document).on("submit", ".reply-form", function(e) {
+  e.preventDefault();
+
+  var form = $(this);
+  var url = form.attr("action");
+  var data = form.serialize();
+
+  $.ajax({
+    type: "POST",
+    url: url,
+    data: data,
+    success: function(response) {
+      // Clear reply form
+      form[0].reset();
+
+      // Append new reply to the replies section
+      var replyHtml = `
+        <div style="margin-left: 8%;" class="reply-${response.reply_id} d-flex">
+          <div class="flex-shrink-0">
+            <img class="rounded-circle" src="${response.author.profile_picture_url}" alt="..."
+              style="width: 30px; height: 30px;" />
+          </div>
+          <div class="ms-3">
+            <div>
+              <b>${response.author}</b>
+              <small>${response.created_at} ago...</small>
+            </div>
+            ${response.content}
+            <p>
+              <!-- Like and Dislike buttons for reply -->
+              <button 
+                class="badge btn btn-primary text-decoration-none link-light reply-like-btn"
+                data-reply-id="${response.reply_id}" data-like-url="${response.like_url}">
+                Like <span class="total-likes" id="likes-${response.reply_id}">0</span>
+              </button>
+              <button style="margin-left: 0.5%;"
+                class="badge btn btn-primary text-decoration-none link-light reply-dislike-btn"
+                data-reply-id="${response.reply_id}" data-dislike-url="${response.dislike_url}">
+                Dislike <span class="total-dislikes" id="dislikes-${response.reply_id}">0</span>
+              </button>
+            </p>
+          </div>
+        </div>
+        <hr>
+      `;
+
+      var repliesSection = $("#replies" + response.comment_id);
+      repliesSection.append(replyHtml);
+
+      // Update total comments count
+      var totalCommentsSpan = form.closest(".comment").find(".total-comments");
+      var totalComments = parseInt(totalCommentsSpan.text()) + 1;
+      totalCommentsSpan.text(totalComments);
+    },
+    error: function(error) {
+      console.log(error);
+    }
+  });
+});
+});
+</script>
